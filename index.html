@@ -107,6 +107,12 @@
   .ex .name{font-weight:700;line-height:1.25}
   .ex .dose{color:var(--accent-2);font-weight:700;font-size:14px;margin-top:1px}
   .ex .cue{color:var(--muted);font-size:13.5px;margin-top:3px}
+  .howto{display:inline-flex;align-items:center;gap:6px;margin-top:4px;padding:5px 0;color:var(--accent-2);font-size:13.5px;font-weight:700}
+  .howto .i{width:15px;height:15px}
+  .player .howto{margin-top:0;padding:9px 16px;font-size:14.5px;border:1px solid var(--line);border-radius:99px;background:var(--surface)}
+  .vid{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;margin:8px auto 10px}
+  .vid.tall{aspect-ratio:9/16;width:min(100%,calc(60dvh * 9 / 16))}
+  .vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
   .sub{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:14px 0 2px}
   .sub small{font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
   .chead{display:flex;align-items:center;gap:10px}
@@ -361,6 +367,33 @@
     { t: 'Posterior de coxa', sec: 30, sides: 1, dose: '30 s cada lado', cue: 'Deitado de costas, suba uma perna quase reta e segure atrás da coxa.' },
     { t: 'Livro aberto', sec: 30, sides: 1, dose: '6 cada lado', cue: 'Deitado de lado, joelhos dobrados. Abra o braço de cima girando o tronco e volte devagar.' }
   ];
+
+  /* vídeos "como fazer" (YouTube). Valor: ID do vídeo; "|v" no fim = vídeo vertical (Shorts) */
+  const VID = {
+    'Agachamento com pausa': '13rt06PvZKY|v',
+    'Afundo búlgaro': '9Y4z9XPAGl0', 'Búlgaro com mochila': '9Y4z9XPAGl0', 'Búlgaro descendo em 3 s': '9Y4z9XPAGl0',
+    'Flexão de braço': '2hRS6uMoqzI', 'Flexão descendo em 3 s': 'P0tqXYa0KSA',
+    'Flexão com pés elevados': 'xARTt_hMvj4|v', 'Flexão arqueiro': '7WAaurUZvZQ|v',
+    'Remada com elástico': 'rwictXq_AIw|v', 'Remada com elástico forte': 'rwictXq_AIw|v', 'Remada com dois elásticos': 'rwictXq_AIw|v',
+    'Remada com um braço': '8VRdzgJIh0k|v', 'Remada curvada com mochila': 'mjFIZX68F_8|v',
+    'Ponte de glúteo com pausa': 'BNE8mCyAfZM|v', 'Ponte com uma perna': '4AeXJJRhkMw',
+    'Elevação de quadril no sofá, uma perna': 'oVzbgjNxCfs', 'Elevação de quadril com mochila': 'oVzbgjNxCfs',
+    'Prancha frontal': 'qNRqGqESAWU', 'Prancha com toque no ombro': 'yQzUfUwB2jY|v',
+    'Prancha com um pé elevado': 'CFPdqlV7XBc', 'Prancha com braços à frente': 'clv-nVjiOjE',
+    'Afundo para trás': 'mUvbDSFffE4', 'Afundo para trás com mochila': 'mUvbDSFffE4',
+    'Afundo com pé da frente elevado': 'F_CIJjXfGzA|v', 'Afundo elevado com mochila': 'F_CIJjXfGzA|v',
+    'Suspensão na barra': '2iBYhmnR6rE|v', 'Barra: descidas lentas': 'jDbcafEuQKY|v',
+    'Barra com elástico de ajuda': 'adpxQ_PBz24|v', 'Barra completa': 'qT_6_B4trdo|v',
+    'Remada com mochila, descendo em 3 s': 'mjFIZX68F_8|v',
+    'Desenvolvimento com elástico': 'wJ65d97RrYA|v', 'Desenvolvimento com elástico forte': 'wJ65d97RrYA|v', 'Desenvolvimento com mochila': 'wJ65d97RrYA|v',
+    'Flexão pike': 'LbzzNFgGjAI|v', 'Pike com pés elevados': 'pSBISPWDMPQ|v',
+    'Stiff com elástico': 'jThDGCFCEjY|v', 'Stiff com elástico forte': 'jThDGCFCEjY|v',
+    'Stiff com uma perna, com apoio': 'WBHdysLdrUM', 'Stiff com uma perna e mochila': 'WBHdysLdrUM', 'Stiff com mochila': '2qME_PVluMI|v',
+    'Prancha lateral nos joelhos': 'pRY6ChB4e2A', 'Prancha lateral': 'zt7PjySXWCw', 'Prancha lateral com perna elevada': 'RBQ8EfEF7KQ',
+    'Perdigueiro (bird dog)': 'Nm8onc8ndVw',
+    'Gato-vaca': 'uS0ZRyC0P44|v', 'Flexor do quadril': 'K-8dxuHU79Y|v', 'Figura 4 deitado': 'JXHEnNHc6ZY|v',
+    'Posterior de coxa': '4OzKXaEbQ8s|v', 'Livro aberto': 'WcZbP6irFY0|v'
+  };
 
   const usesAlt = (mv) => !S.equip && !!MOVES[mv].alt;
   const lvIdx = (mv) => Math.min(LV[mv] || 0, MOVES[mv].lv.length - 1);
@@ -670,8 +703,9 @@
     });
     return h + '<div class="sub">Fechamento <small>· figura 4 e posterior de coxa, 2 min</small></div>';
   }
+  const vidBtn = (name) => (VID[name] ? '<button class="howto" data-act="video" data-v="' + esc(name) + '">' + ic('play') + 'Como fazer</button>' : '');
   const exRow = (n, name, dose, cue) => '<div class="ex"><span class="n">' + n + '</span><div><div class="name">' + esc(name) +
-    '</div><div class="dose">' + esc(dose) + '</div><div class="cue">' + esc(cue) + '</div></div></div>';
+    '</div><div class="dose">' + esc(dose) + '</div><div class="cue">' + esc(cue) + '</div>' + vidBtn(name) + '</div></div>';
 
   function viewHoje() {
     const now = new Date(), k = dkey(now), type = sessionFor(now), wk = planWeek(now), L = LOG[k] || {}, m = SESS[type];
@@ -836,6 +870,14 @@
         '<p class="hint" style="text-align:center;margin-top:10px">Cerca de ' + min + ' min, com aquecimento e fechamento.</p>' +
         '<button class="btn" data-act="startPre">' + ic('play') + 'Começar</button><button class="btn ghost" style="margin-top:10px" data-act="closeSheet">Cancelar</button>';
     }
+    if (V.sheet === 'video') {
+      const v = VID[V.vid] || '', id = v.split('|')[0], tall = v.indexOf('|v') > 0;
+      return '<h3>' + esc(V.vid) + '</h3><p class="d">Veja o movimento antes de fazer. Precisa de internet.</p>' +
+        '<div class="vid' + (tall ? ' tall' : '') + '"><iframe src="https://www.youtube-nocookie.com/embed/' + id + '?rel=0&playsinline=1" title="' + esc(V.vid) +
+        '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>' +
+        '<div class="links" style="margin-top:0"><a class="link" href="https://www.youtube.com/watch?v=' + id + '" target="_blank" rel="noopener">Não abriu? Ver no YouTube</a></div>' +
+        '<button class="btn ghost" style="margin-top:6px" data-act="closeSheet">Fechar</button>';
+    }
     if (V.sheet === 'backup') {
       const data = {}; KEYS.forEach((k) => { data[k] = store.get('treino.' + k, null); });
       return '<h3>Cópia de segurança</h3><p class="d">Copie o texto e guarde onde quiser. Para restaurar, cole aqui um texto exportado antes.</p>' +
@@ -868,14 +910,14 @@
         '<circle class="prog" id="prog" cx="100" cy="100" r="92" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="0"/></svg>' +
         '<div class="ring-c"><div class="lab" id="plab"></div><div class="time" id="ptime"></div></div></div>' +
         '<div class="ptitle">' + esc(s.title) + '</div>' + (s.sub ? '<div class="psub">' + esc(s.sub) + '</div>' : '') +
-        (s.cue ? '<div class="pcue">' + esc(s.cue) + '</div>' : '');
+        (s.cue ? '<div class="pcue">' + esc(s.cue) + '</div>' : '') + vidBtn(s.title);
       if (s.hold && SES.st === 'ready' && s.log) {
         h += '<div class="stepper"><button data-act="holdAdj" data-d="-5" aria-label="Menos 5 segundos">−</button><div class="v sm">' + s.sec + ' s</div>' +
           '<button data-act="holdAdj" data-d="5" aria-label="Mais 5 segundos">+</button></div><div class="hint">Meta: ' + esc(doseTxt(cur(s.hold))) + '</div>';
       }
     } else {
       const lh = lastHist(s.mv);
-      h += '<div class="target">Meta: ' + esc(doseTxt(s)) + '</div><div class="ptitle">' + esc(s.title) + '</div><div class="pcue">' + esc(s.cue) + '</div>' +
+      h += '<div class="target">Meta: ' + esc(doseTxt(s)) + '</div><div class="ptitle">' + esc(s.title) + '</div><div class="pcue">' + esc(s.cue) + '</div>' + vidBtn(s.title) +
         '<div class="stepper"><button data-act="rep" data-d="-1" aria-label="Menos uma">−</button><div class="v" id="repv">' + SES.cur + '</div>' +
         '<button data-act="rep" data-d="1" aria-label="Mais uma">+</button></div>' +
         '<div class="hint">' + (s.unit === 'rep.' ? 'repetições' : s.unit) + ' que você fez' + (s.side ? ' (' + s.side + ')' : '') +
@@ -948,6 +990,7 @@
   const A = {
     tab(d) { V.tab = d.v; render.sameTab = false; render(); },
     sheet(d) { V.sheet = d.v; render(); },
+    video(d) { if (!VID[d.v]) return; if (timed()) pauseSes(); V.vid = d.v; V.sheet = 'video'; render(); },
     closeSheet() { V.sheet = null; V.pre = null; render(); },
     veil(d, e) { if (e.target.classList.contains('veil')) { V.sheet = null; V.pre = null; V.confirm = null; render(); } },
     begin() { S.start = dkey(); saveAll(); toast('Plano iniciado. Semana 1.'); },
