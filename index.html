@@ -247,7 +247,8 @@
     del(k) { try { localStorage.removeItem(k); } catch (e) {} }
   };
   const KEYS = ['settings', 'levels', 'hold', 'log', 'hist', 'tests'];
-  let S = Object.assign({ sound: true, vibrate: true, equip: false, start: null }, store.get('treino.settings', {}));
+  let S = Object.assign({ sound: true, vibrate: true, bands: false, bar: false, start: null }, store.get('treino.settings', {}));
+  if ('equip' in S) { if (S.equip) { S.bands = true; S.bar = true; } delete S.equip; }
   let LV = store.get('treino.levels', {});
   let HOLD = store.get('treino.hold', {});
   let LOG = store.get('treino.log', {});
@@ -296,7 +297,7 @@
   const MOVES = {
     agachar: { label: 'Agachar', lv: [
       { n: 'Agachamento com pausa', lo: 10, hi: 15, cue: 'Desça e segure 2 s embaixo. Calcanhar no chão, joelhos na direção dos pés.' },
-      { n: 'Afundo búlgaro', lo: 8, hi: 12, side: 'cada perna', cue: 'Pé de trás apoiado no sofá. Desça reto, com o joelho da frente na direção do pé.' },
+      { n: 'Afundo búlgaro', lo: 8, hi: 12, side: 'cada perna', cue: 'Pé de trás apoiado no sofá ou no 2º degrau da escada. Desça reto, com o joelho da frente na direção do pé.' },
       { n: 'Búlgaro com mochila', lo: 8, hi: 12, side: 'cada perna', cue: 'O mesmo movimento, com a mochila de livros nas costas ou abraçada no peito.' },
       { n: 'Búlgaro descendo em 3 s', lo: 6, hi: 10, side: 'cada perna', cue: 'Com a mochila. Conte 3 s na descida e suba normal.' } ] },
     empurrar: { label: 'Empurrar', lv: [
@@ -305,10 +306,10 @@
       { n: 'Flexão com pés elevados', lo: 5, hi: 12, cue: 'Pés no sofá ou na cadeira. Não deixe o quadril cair.' },
       { n: 'Flexão arqueiro', lo: 4, hi: 8, side: 'cada lado', cue: 'Mãos bem afastadas. Desça para um lado, deixando o outro braço quase reto.' } ] },
     remar: { label: 'Remar', lv: [
-      { n: 'Remada com elástico', lo: 12, hi: 15, cue: 'Elástico leve preso na porta, na altura do peito. Puxe os cotovelos para trás e segure 1 s.' },
-      { n: 'Remada com elástico forte', lo: 10, hi: 15, cue: 'Elástico mais forte, na altura do peito. Cotovelos para trás, segure 1 s.' },
-      { n: 'Remada com um braço', lo: 8, hi: 12, side: 'cada braço', cue: 'Um braço por vez, segurando 2 s com o cotovelo atrás. Não gire o tronco.' },
-      { n: 'Remada com dois elásticos', lo: 10, hi: 15, cue: 'Dois elásticos juntos. Mesma execução, com pausa de 1 s.' } ],
+      { n: 'Remada sentada com elástico', lo: 12, hi: 15, cue: 'Sentado no chão, coluna reta, elástico leve passado na sola dos pés. Puxe os cotovelos para trás, rente ao corpo, e segure 1 s.' },
+      { n: 'Remada sentada com elástico forte', lo: 10, hi: 15, cue: 'Elástico mais forte nos pés. Cotovelos para trás, junte as escápulas e segure 1 s.' },
+      { n: 'Remada sentada com um braço', lo: 8, hi: 12, side: 'cada braço', cue: 'Elástico nos pés, um braço por vez. Segure 2 s com o cotovelo atrás, sem girar o tronco.' },
+      { n: 'Remada sentada com dois elásticos', lo: 10, hi: 15, cue: 'Dois elásticos juntos nos pés. Mesma execução, com pausa de 1 s.' } ],
       alt: { n: 'Remada curvada com mochila', lo: 10, hi: 15, side: 'cada braço', cue: 'Uma mão apoiada na cadeira, coluna reta. Puxe a mochila até a cintura.' } },
     gluteo: { label: 'Glúteo', lv: [
       { n: 'Ponte de glúteo com pausa', lo: 12, hi: 15, cue: 'Empurre pelos calcanhares e segure 2 s no topo. Quem sobe é o quadril, não a lombar.' },
@@ -323,13 +324,13 @@
     afundo: { label: 'Afundo', lv: [
       { n: 'Afundo para trás', lo: 8, hi: 10, side: 'cada perna', cue: 'Passo longo para trás, tronco reto. Suba empurrando com a perna da frente.' },
       { n: 'Afundo para trás com mochila', lo: 8, hi: 10, side: 'cada perna', cue: 'O mesmo afundo, com a mochila de livros nas costas.' },
-      { n: 'Afundo com pé da frente elevado', lo: 8, hi: 10, side: 'cada perna', cue: 'Pé da frente num degrau ou livro grosso, para descer mais fundo.' },
-      { n: 'Afundo elevado com mochila', lo: 8, hi: 10, side: 'cada perna', cue: 'Pé da frente elevado e mochila nas costas.' } ] },
+      { n: 'Afundo com pé da frente elevado', lo: 8, hi: 10, side: 'cada perna', cue: 'Pé da frente no 1º degrau da escada, para descer mais fundo. Segure no corrimão se precisar de equilíbrio.' },
+      { n: 'Afundo elevado com mochila', lo: 8, hi: 10, side: 'cada perna', cue: 'Pé da frente no degrau e mochila nas costas.' } ] },
     barra: { label: 'Barra', lv: [
-      { n: 'Suspensão na barra', hold: 1, lo: 15, hi: 30, cue: 'Pendure-se com os braços estendidos e os ombros firmes, sem balançar.' },
-      { n: 'Barra: descidas lentas', lo: 3, hi: 5, cue: 'Suba com a ajuda de uma cadeira e desça em 3 a 5 s.' },
-      { n: 'Barra com elástico de ajuda', lo: 3, hi: 8, cue: 'Elástico preso na barra, com o pé ou o joelho apoiado nele. Queixo acima da barra.' },
-      { n: 'Barra completa', lo: 1, hi: 8, cue: 'Sem ajuda. Comece pendurado e suba até o queixo passar da barra.' } ],
+      { n: 'Suspensão na barra', hold: 1, lo: 15, hi: 30, cue: 'Joelhos dobrados para os pés não tocarem o chão. Braços estendidos, ombros firmes, sem balançar.' },
+      { n: 'Barra: descidas lentas', lo: 3, hi: 5, cue: 'Chegue ao alto com um pulinho ou um banquinho, joelhos dobrados, e desça em 3 a 5 s. Sem balanço: a estrutura mexe.' },
+      { n: 'Barra com elástico de ajuda', lo: 3, hi: 8, cue: 'Elástico preso na barra, com o joelho apoiado nele. Suba devagar até o queixo passar da barra, sem impulso.' },
+      { n: 'Barra completa', lo: 1, hi: 8, cue: 'Sem ajuda, joelhos dobrados. Suba devagar até o queixo passar da barra, sem balanço nem impulso.' } ],
       alt: { n: 'Remada com mochila, descendo em 3 s', lo: 8, hi: 12, side: 'cada braço', cue: 'A mesma remada curvada, descendo a mochila devagar.' } },
     ombro: { label: 'Ombro', lv: [
       { n: 'Desenvolvimento com elástico', lo: 10, hi: 12, cue: 'Pise no elástico e empurre acima da cabeça. Abdômen firme, sem arquear a lombar.' },
@@ -374,8 +375,8 @@
     'Afundo búlgaro': '9Y4z9XPAGl0', 'Búlgaro com mochila': '9Y4z9XPAGl0', 'Búlgaro descendo em 3 s': '9Y4z9XPAGl0',
     'Flexão de braço': '2hRS6uMoqzI', 'Flexão descendo em 3 s': 'P0tqXYa0KSA',
     'Flexão com pés elevados': 'xARTt_hMvj4|v', 'Flexão arqueiro': '7WAaurUZvZQ|v',
-    'Remada com elástico': 'rwictXq_AIw|v', 'Remada com elástico forte': 'rwictXq_AIw|v', 'Remada com dois elásticos': 'rwictXq_AIw|v',
-    'Remada com um braço': '8VRdzgJIh0k|v', 'Remada curvada com mochila': 'mjFIZX68F_8|v',
+    'Remada sentada com elástico': 'zxndd6x_NL8', 'Remada sentada com elástico forte': 'zxndd6x_NL8', 'Remada sentada com dois elásticos': 'zxndd6x_NL8',
+    'Remada sentada com um braço': '__qSv8Mb2_o', 'Remada curvada com mochila': 'mjFIZX68F_8|v',
     'Ponte de glúteo com pausa': 'BNE8mCyAfZM|v', 'Ponte com uma perna': '4AeXJJRhkMw',
     'Elevação de quadril no sofá, uma perna': 'oVzbgjNxCfs', 'Elevação de quadril com mochila': 'oVzbgjNxCfs',
     'Prancha frontal': 'qNRqGqESAWU', 'Prancha com toque no ombro': 'yQzUfUwB2jY|v',
@@ -395,7 +396,8 @@
     'Posterior de coxa': '4OzKXaEbQ8s|v', 'Livro aberto': 'WcZbP6irFY0|v'
   };
 
-  const usesAlt = (mv) => !S.equip && !!MOVES[mv].alt;
+  const NEEDS = { remar: 'bands', ombro: 'bands', stiff: 'bands', barra: 'bar' };
+  const usesAlt = (mv) => !!MOVES[mv].alt && !S[NEEDS[mv]];
   const lvIdx = (mv) => Math.min(LV[mv] || 0, MOVES[mv].lv.length - 1);
   const lvKey = (mv) => (usesAlt(mv) ? 'alt' : lvIdx(mv));
   const cur = (mv) => (usesAlt(mv) ? MOVES[mv].alt : MOVES[mv].lv[lvIdx(mv)]);
@@ -717,8 +719,10 @@
 
     if (!S.start) {
       h += '<div class="card"><div class="eyebrow">Primeiro passo</div>' +
-        '<div class="rowc" style="margin:12px 0 2px"><div class="g"><div class="t">Já tenho barra e elásticos</div>' +
-        '<div class="s">Desligado: o app troca esses exercícios por versões com mochila.</div></div>' + sw(S.equip, 'tgEquip') + '</div>' +
+        '<div class="rowc" style="margin:12px 0 2px"><div class="g"><div class="t">Já tenho os elásticos</div>' +
+        '<div class="s">Desligado: remada, ombro e stiff usam a mochila.</div></div>' + sw(S.bands, 'tgBands') + '</div>' +
+        '<div class="rowc" style="margin:12px 0 2px"><div class="g"><div class="t">Tenho uma barra para pendurar</div>' +
+        '<div class="s">Desligado: a barra vira remada com mochila.</div></div>' + sw(S.bar, 'tgBar') + '</div>' +
         '<button class="btn" data-act="begin">Começar o plano hoje</button></div>';
     }
 
@@ -751,7 +755,7 @@
     if (S.start) {
       if (isLight(wk)) h += '<div class="note"><b>Semana leve.</b> 2 voltas por circuito, para recuperar.</div>';
       else if (wk <= 2) h += '<div class="note"><b>Semanas 1 e 2.</b> 2 voltas por circuito, parando com 3 repetições de sobra. O objetivo é aprender a execução.</div>';
-      else if (wk === 3 && S.equip && !LV.barra) h += '<div class="note"><b>Semana 3.</b> Agora são 3 voltas. Na barra, é hora de trocar a suspensão pelas descidas lentas.' +
+      else if (wk === 3 && S.bar && !LV.barra) h += '<div class="note"><b>Semana 3.</b> Agora são 3 voltas. Na barra, é hora de trocar a suspensão pelas descidas lentas.' +
         '<button class="btn sm ghost" data-act="lv" data-mv="barra" data-d="1">Subir a barra um degrau</button></div>';
       if (wk % 4 === 0) h += '<div class="note"><b>Semana de testes.</b> Na sexta, faça os 4 testes no lugar do treino e registre em Progresso.</div>';
     }
@@ -837,8 +841,9 @@
       '<div class="note warn"><b>Pare e procure avaliação médica</b> se aparecer dor que desce pela perna, formigamento, dormência ou perda de força na perna ou no pé.</div>' +
       '<h2 class="sec">Para não abandonar</h2><ul class="g"><li><b>Horário fixo</b>, colado em algo que você já faz.</li>' +
       '<li><b>Dia sem vontade:</b> 1 volta de cada circuito ou 10 min de bicicleta. Não zere.</li><li><b>Perdeu um dia:</b> siga a semana normal, sem compensar.</li></ul>' +
-      '<h2 class="sec">Equipamento</h2><ul class="g"><li><b>Barra de porta</b> com limite de carga de 100 kg ou mais. Teste o encaixe antes de cada treino.</li>' +
-      '<li><b>Elásticos em anel longo</b> (super band) em três resistências, mais uma âncora de porta.</li>' +
+      '<h2 class="sec">Equipamento</h2><ul class="g"><li><b>Barra:</b> a do aparelho de alongamento serve. Joelhos dobrados, subida e descida lentas, sem balanço nem impulso. Confira se está firme antes de cada treino.</li>' +
+      '<li><b>Elásticos em anel longo</b> (super band) em três resistências. Na remada o elástico fica preso nos pés, então não precisa de âncora de porta.</li>' +
+      '<li><b>Escada:</b> o degrau serve de apoio no búlgaro e no afundo com pé elevado.</li>' +
       '<li><b>Mochila com livros</b> como carga extra, <b>colchonete</b>, cadeira firme e sofá.</li></ul>' +
       '<h2 class="sec">Bicicleta</h2><ul class="g"><li>Selim na altura em que o joelho fica quase estendido embaixo, sem o quadril balançar.</li>' +
       '<li>Coluna alongada, sem desabar sobre o guidão.</li></ul>' +
@@ -850,7 +855,8 @@
     if (V.sheet === 'cfg') {
       return '<h3>Ajustes</h3><div class="field"><label for="c_start">Início do plano<small>Define a semana atual (hoje: semana ' + planWeek() + ')</small></label>' +
         '<input id="c_start" type="date" value="' + esc(S.start || '') + '" data-chg="start"></div>' +
-        '<div class="field"><label>Já tenho barra e elásticos<small>Desligado: usa versões com mochila</small></label>' + sw(S.equip, 'tgEquip') + '</div>' +
+        '<div class="field"><label>Já tenho os elásticos<small>Desligado: remada, ombro e stiff com mochila</small></label>' + sw(S.bands, 'tgBands') + '</div>' +
+        '<div class="field"><label>Tenho uma barra para pendurar<small>Desligado: a barra vira remada com mochila</small></label>' + sw(S.bar, 'tgBar') + '</div>' +
         '<div class="field"><label>Som</label>' + sw(S.sound, 'tgSound') + '</div>' +
         '<div class="field"><label>Vibração</label>' + sw(S.vibrate, 'tgVib') + '</div>' +
         '<button class="btn ghost" data-act="closeSheet">Fechar</button>' +
@@ -994,7 +1000,8 @@
     closeSheet() { V.sheet = null; V.pre = null; render(); },
     veil(d, e) { if (e.target.classList.contains('veil')) { V.sheet = null; V.pre = null; V.confirm = null; render(); } },
     begin() { S.start = dkey(); saveAll(); toast('Plano iniciado. Semana 1.'); },
-    tgEquip() { S.equip = !S.equip; saveAll(); render(); },
+    tgBands() { S.bands = !S.bands; saveAll(); render(); },
+    tgBar() { S.bar = !S.bar; saveAll(); render(); },
     tgSound() { S.sound = !S.sound; saveAll(); if (S.sound) { unlockAudio(); playNow(sChime); } render(); },
     tgVib() { S.vibrate = !S.vibrate; saveAll(); buzz(80); render(); },
     go(d) {
