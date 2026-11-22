@@ -283,6 +283,7 @@
     leve: { name: 'Bicicleta leve', tag: 'Bike', short: 'Bike', desc: 'Ritmo constante, esforço 5 a 6 de 10' },
     tiros: { name: 'Bicicleta com tiros', tag: 'Bike', short: 'Tiros', desc: 'Tiros de 1 min, esforço 8 a 9 de 10' },
     mob: { name: 'Mobilidade de quadril', tag: 'Mobilidade', short: 'Mob', desc: '5 alongamentos, 5 minutos' },
+    costas: { name: 'Mobilidade de costas e pescoço', tag: 'Mobilidade', short: 'Costas', desc: '6 movimentos suaves, 5 minutos' },
     livre: { name: 'Dia livre', tag: 'Livre', short: 'Livre', desc: 'Caminhada de 30 min ou só a mobilidade' }
   };
   function sessionFor(d) {
@@ -368,6 +369,16 @@
     { t: 'Posterior de coxa', sec: 30, sides: 1, dose: '30 s cada lado', cue: 'Deitado de costas, suba uma perna quase reta e segure atrás da coxa.' },
     { t: 'Livro aberto', sec: 30, sides: 1, dose: '6 cada lado', cue: 'Deitado de lado, joelhos dobrados. Abra o braço de cima girando o tronco e volte devagar.' }
   ];
+  const MOBC = [
+    { t: 'Retração do queixo', sec: 40, dose: '8 repetições lentas', cue: 'Sentado, coluna alta. Leve o queixo reto para trás, fazendo papada, sem abaixar a cabeça. Segure 2 s e solte.' },
+    { t: 'Alongamento lateral do pescoço', sec: 30, sides: 1, dose: '30 s cada lado', cue: 'Ombros soltos e para baixo. Incline a orelha em direção ao ombro, sem girar o rosto. A mão só pesa de leve, sem puxar.' },
+    { t: 'Extensão torácica sentado', sec: 40, dose: '8 repetições', cue: 'Sentado, braços cruzados no peito. Leve o peito para cima e para trás, olhando para o teto, e volte. O movimento é no meio das costas, não na lombar.' },
+    { t: 'Anjo na parede', sec: 40, dose: '8 repetições lentas', cue: 'Costas, cabeça e glúteo na parede, pés um pouco à frente. Braços em W: deslize para cima e para baixo sem tirar da parede. Só até onde der.' },
+    { t: 'Rotação torácica em 4 apoios', sec: 30, sides: 1, dose: '6 cada lado', cue: 'Em quatro apoios, quadril parado. Passe uma mão por baixo do peito e depois abra o braço para o teto, girando o tronco e seguindo a mão com o olhar.' },
+    { t: 'Postura da criança', sec: 40, dose: '40 s respirando fundo', cue: 'Joelhos afastados, glúteo em direção aos calcanhares, braços estendidos à frente. Solte o pescoço e respire fundo, enchendo as costas de ar.' }
+  ];
+  /* mobilidade do dia: alterna quadril e costas (seg quadril, ter costas, qua quadril...) */
+  const mobFor = (d) => (((d.getDay() + 6) % 7) % 2 ? 'costas' : 'mob');
 
   /* vídeos "como fazer" (YouTube). Valor: ID do vídeo; "|v" no fim = vídeo vertical (Shorts) */
   const VID = {
@@ -393,7 +404,9 @@
     'Prancha lateral nos joelhos': 'pRY6ChB4e2A', 'Prancha lateral': 'zt7PjySXWCw', 'Prancha lateral com perna elevada': 'RBQ8EfEF7KQ',
     'Perdigueiro (bird dog)': 'Nm8onc8ndVw',
     'Gato-vaca': 'uS0ZRyC0P44|v', 'Flexor do quadril': 'K-8dxuHU79Y|v', 'Figura 4 deitado': 'JXHEnNHc6ZY|v',
-    'Posterior de coxa': '4OzKXaEbQ8s|v', 'Livro aberto': 'WcZbP6irFY0|v'
+    'Posterior de coxa': '4OzKXaEbQ8s|v', 'Livro aberto': 'WcZbP6irFY0|v',
+    'Retração do queixo': 'qhZbRnGSI9E', 'Alongamento lateral do pescoço': 'wrNfkcmrxMs', 'Extensão torácica sentado': 'HlC5PjxqpqI',
+    'Anjo na parede': 'liLqhPn2yMw', 'Rotação torácica em 4 apoios': 'fQy4REtRN8g', 'Postura da criança': '9ew1pOUIcr8'
   };
 
   const NEEDS = { remar: 'bands', ombro: 'bands', stiff: 'bands', barra: 'bar' };
@@ -417,9 +430,9 @@
 
   /* ================= montagem da sessão ================= */
   const T = (title, sub, sec, o) => Object.assign({ k: 't', title, sub, sec, prep: 0, cue: '', phase: 'rest', group: '' }, o || {});
-  function mobSteps(group) {
+  function mobSteps(group, list) {
     const out = [];
-    MOB.forEach((m) => {
+    (list || MOB).forEach((m) => {
       if (m.sides) {
         out.push(T(m.t, 'Lado 1', m.sec, { prep: 5, cue: m.cue, phase: 'stretch', group }));
         out.push(T(m.t, 'Lado 2', m.sec, { prep: 5, cue: m.cue, phase: 'stretch', group }));
@@ -457,6 +470,7 @@
   }
   function buildSteps(type, rounds) {
     if (type === 'mob') return mobSteps('Mobilidade de quadril');
+    if (type === 'costas') return mobSteps('Mobilidade de costas e pescoço', MOBC);
     if (type === 'leve') {
       const g = 'Bicicleta leve';
       return [
@@ -628,6 +642,7 @@
     const k = SES.date, L = LOG[k] = LOG[k] || {};
     L.done = L.done || {};
     if (SES.type === 'mob') L.mob = 1;
+    else if (SES.type === 'costas') L.costas = 1;
     else { L.done[SES.type] = 1; if (SES.type === 'A' || SES.type === 'B') L.mob = 1; }
     Object.keys(SES.vals).forEach((mv) => {
       const v = SES.vals[mv].filter((x) => x != null);
@@ -649,7 +664,7 @@
 
   /* ================= registros ================= */
   const mainDone = (k) => !!(LOG[k] && LOG[k].done && Object.keys(LOG[k].done).length);
-  const didTrain = (k) => mainDone(k) || !!(LOG[k] && (LOG[k].walk || (parseKey(k).getDay() === 0 && LOG[k].mob)));
+  const didTrain = (k) => mainDone(k) || !!(LOG[k] && (LOG[k].walk || (parseKey(k).getDay() === 0 && (LOG[k].mob || LOG[k].costas))));
   function streak() {
     let n = 0, d = new Date();
     if (!didTrain(dkey(d))) d = addDays(d, -1);
@@ -689,6 +704,7 @@
 
   function exList(type) {
     if (type === 'mob') return MOB.map((m, i) => exRow(i + 1, m.t, m.dose, m.cue)).join('');
+    if (type === 'costas') return MOBC.map((m, i) => exRow(i + 1, m.t, m.dose, m.cue)).join('');
     if (type === 'leve') return exRow(1, 'Aquecer', '5 min', 'Carga baixa, subindo aos poucos.') +
       exRow(2, 'Ritmo constante', '22 min · esforço 5 a 6 de 10', 'Você consegue falar frases inteiras, mas não cantar. Dá para ouvir aula ou revisão em áudio.') +
       exRow(3, 'Desacelerar', '3 min', 'Carga baixa até a respiração voltar ao normal.');
@@ -712,7 +728,8 @@
   function viewHoje() {
     const now = new Date(), k = dkey(now), type = sessionFor(now), wk = planWeek(now), L = LOG[k] || {}, m = SESS[type];
     const strength = type === 'A' || type === 'B';
-    const done = type === 'livre' ? !!(L.walk || L.mob) : !!(L.done && L.done[type]);
+    const mt = mobFor(now), mDone = !!L[mt];
+    const done = type === 'livre' ? !!(L.walk || L.mob || L.costas) : !!(L.done && L.done[type]);
     const live = SES && SES.date === k && SES.st !== 'done';
     let h = '<div class="top"><div class="brand"><span class="dot"></span>Treino em casa</div>' +
       '<button class="icon-btn" data-act="sheet" data-v="cfg" aria-label="Ajustes">' + ic('cfg') + '</button></div>';
@@ -730,8 +747,8 @@
     if (type === 'livre') {
       h += '<div class="rowc" style="margin-top:16px"><div class="g"><div class="t">Caminhada de 30 min</div><div class="s">Ritmo de conversa</div></div>' +
         (L.walk ? '<span class="tick">' + ic('check') + '</span>' : '<button class="btn sm ghost" data-act="walk">Marcar</button>') + '</div>' +
-        '<div class="rowc" style="margin-top:12px"><div class="g"><div class="t">Mobilidade de quadril</div><div class="s">5 minutos</div></div>' +
-        (L.mob ? '<span class="tick">' + ic('check') + '</span>' : '<button class="btn sm" data-act="go" data-v="mob">Começar</button>') + '</div>';
+        '<div class="rowc" style="margin-top:12px"><div class="g"><div class="t">' + esc(SESS[mt].name) + '</div><div class="s">5 minutos</div></div>' +
+        (mDone ? '<span class="tick">' + ic('check') + '</span>' : '<button class="btn sm" data-act="go" data-v="' + mt + '">Começar</button>') + '</div>';
     } else {
       h += '<div class="chips"><span class="chip">30 min</span>' +
         (strength ? '<span class="chip">Semana ' + wk + ' · ' + defRounds(wk) + ' voltas</span>' : '') +
@@ -760,8 +777,9 @@
       if (wk % 4 === 0) h += '<div class="note"><b>Semana de testes.</b> Na sexta, faça os 4 testes no lugar do treino e registre em Progresso.</div>';
     }
     if (!strength && type !== 'livre') {
-      h += '<div class="card"><div class="rowc"><div class="g"><div class="t">Mobilidade de quadril</div><div class="s">5 min, numa pausa do estudo</div></div>' +
-        (L.mob ? '<span class="tick">' + ic('check') + '</span>' : '<button class="btn sm ghost" data-act="go" data-v="mob">Começar</button>') + '</div></div>';
+      h += '<div class="card"><div class="rowc"><div class="g"><div class="t">' + esc(SESS[mt].name) + '</div><div class="s">5 min, numa pausa do estudo · amanhã: ' +
+        (mt === 'mob' ? 'costas' : 'quadril') + '</div></div>' +
+        (mDone ? '<span class="tick">' + ic('check') + '</span>' : '<button class="btn sm ghost" data-act="go" data-v="' + mt + '">Começar</button>') + '</div></div>';
     }
 
     h += '<h2 class="sec">Esta semana</h2><div class="week">';
@@ -780,7 +798,7 @@
 
   function viewPlano() {
     let h = '<h1 class="pt">Plano</h1>';
-    ['A', 'B', 'leve', 'tiros', 'mob'].forEach((t) => {
+    ['A', 'B', 'leve', 'tiros', 'mob', 'costas'].forEach((t) => {
       const m = SESS[t];
       h += '<div class="card"><div class="chead"><div class="g"><div class="eyebrow">' + m.tag + '</div><h3>' + esc(m.name) + '</h3><p>' + esc(m.desc) +
         '</p></div><button class="btn sm" data-act="go" data-v="' + t + '">' + ic('play') + '</button></div>' + exList(t) + '</div>';
@@ -836,9 +854,10 @@
       '<h2 class="sec">Regras para a coluna</h2><ul class="g"><li><b>Lado mais fraco primeiro.</b> O lado forte faz o mesmo número, não mais.</li>' +
       '<li><b>Coluna reta</b> no stiff, na remada e na prancha. Se a lombar arredondar, diminua a amplitude.</li>' +
       '<li><b>Desconforto nas costas até 3 de 10</b>, que some em 24 h, é aceitável. Dor aguda ou pontada: pare o exercício e volte ao degrau anterior.</li>' +
+      '<li><b>Mobilidade:</b> um dia de quadril, outro de costas e pescoço. Movimentos lentos, sem forçar o pescoço. Estalos sem dor são comuns.</li>' +
       '<li><b>Dor muscular depois do treino</b> pode durar 2 a 3 dias nas primeiras semanas. É esperado.</li>' +
       '<li><b>Sentado:</b> levante 1 a 2 min a cada 30 a 45 min. Ande, faça 10 agachamentos ou alongue o flexor do quadril.</li></ul>' +
-      '<div class="note warn"><b>Pare e procure avaliação médica</b> se aparecer dor que desce pela perna, formigamento, dormência ou perda de força na perna ou no pé.</div>' +
+      '<div class="note warn"><b>Pare e procure avaliação médica</b> se aparecer dor que desce pela perna ou pelo braço, formigamento, dormência ou perda de força na perna, no pé, no braço ou na mão.</div>' +
       '<h2 class="sec">Para não abandonar</h2><ul class="g"><li><b>Horário fixo</b>, colado em algo que você já faz.</li>' +
       '<li><b>Dia sem vontade:</b> 1 volta de cada circuito ou 10 min de bicicleta. Não zere.</li><li><b>Perdeu um dia:</b> siga a semana normal, sem compensar.</li></ul>' +
       '<h2 class="sec">Equipamento</h2><ul class="g"><li><b>Barra:</b> a do aparelho de alongamento serve. Joelhos dobrados, subida e descida lentas, sem balanço nem impulso. Confira se está firme antes de cada treino.</li>' +
@@ -864,7 +883,7 @@
     }
     if (V.sheet === 'pick') {
       return '<h3>Trocar o treino</h3><p class="d">Evite dois treinos de força em dias seguidos.</p>' +
-        ['A', 'B', 'leve', 'tiros', 'mob'].map((t) => '<button class="pick" data-act="go" data-v="' + t + '"><div class="g"><div class="t">' + esc(SESS[t].name) +
+        ['A', 'B', 'leve', 'tiros', 'mob', 'costas'].map((t) => '<button class="pick" data-act="go" data-v="' + t + '"><div class="g"><div class="t">' + esc(SESS[t].name) +
           '</div><div class="s">' + esc(SESS[t].desc) + '</div></div>' + ic('next') + '</button>').join('') +
         '<button class="btn ghost" data-act="closeSheet">Cancelar</button>';
     }
